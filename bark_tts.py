@@ -73,6 +73,26 @@ def _load_models(small: bool = False, cpu: bool = False) -> None:
     _models_loaded = True
 
 
+def _split_sentences(text: str) -> list[str]:
+    """Split text into sentence-sized chunks (~13s max per Bark context window)."""
+    import re
+    # Split on sentence-ending punctuation, keeping the delimiter
+    parts = re.split(r'(?<=[.!?…])\s+', text.strip())
+    chunks = []
+    current = ""
+    for part in parts:
+        candidate = (current + " " + part).strip() if current else part
+        # Rough proxy: Bark encodes ~13 chars/token for English; 200 chars ≈ safe limit
+        if len(candidate) > 200 and current:
+            chunks.append(current)
+            current = part
+        else:
+            current = candidate
+    if current:
+        chunks.append(current)
+    return chunks or [text]
+
+
 def _generate(
     text: str,
     voice: str | None,
@@ -81,7 +101,11 @@ def _generate(
     small: bool,
     cpu: bool,
 ) -> tuple[np.ndarray, int]:
-    """Run generation and return (audio_array, sample_rate)."""
+    """Run generation and return (audio_array, sample_rate).
+
+    Long texts are automatically split into sentence chunks and concatenated
+    to work around Bark's ~13-second per-pass context window limit.
+    """
     import torch
     from bark.generation import generate_text_semantic, SAMPLE_RATE
     from bark.api import semantic_to_waveform
@@ -92,13 +116,23 @@ def _generate(
         torch.manual_seed(seed)
         np.random.seed(seed)
 
-    semantic = generate_text_semantic(
-        text,
-        history_prompt=voice,
-        temp=temp,
-        min_eos_p=0.05,
-    )
-    audio = semantic_to_waveform(semantic, history_prompt=voice, temp=temp)
+    chunks = _split_sentences(text)
+    if len(chunks) > 1:
+        print(f"  (splitting into {len(chunks)} chunks for long text)")
+
+    audio_parts = []
+    for i, chunk in enumerate(chunks):
+        if len(chunks) > 1:
+            print(f"  Chunk {i+1}/{len(chunks)}: \"{chunk[:60]}{'…' if len(chunk)>60 else ''}\"")
+        semantic = generate_text_semantic(
+            chunk,
+            history_prompt=voice,
+            temp=temp,
+            min_eos_p=0.05,
+        )
+        audio_parts.append(semantic_to_waveform(semantic, history_prompt=voice, temp=temp))
+
+    audio = np.concatenate(audio_parts) if len(audio_parts) > 1 else audio_parts[0]
     return audio, SAMPLE_RATE
 
 

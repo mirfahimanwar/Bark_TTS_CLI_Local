@@ -12,6 +12,7 @@ A better command-line interface for [Bark](https://github.com/suno-ai/bark) — 
 - All 130+ built-in voice presets (`--list-voices`)
 - Supports cloned `.npz` voice files (from [bark-with-voice-clone](https://github.com/serp-ai/bark-with-voice-clone))
 - CPU fallback mode (`--cpu`) and small model mode (`--small`)
+- **Auto-chunking** — long texts are split at sentence boundaries and stitched together, bypassing Bark's ~13s per-pass limit
 
 ## Requirements
 
@@ -258,6 +259,17 @@ You're running on CPU. A GPU is strongly recommended. Generation is 3–10 secon
 
 **Output has "um" filler before the sound**  
 Lower `--temp` to 0.4–0.5 and add a phonetic lead-in before non-verbal tokens (see above).
+
+**Audio cuts off at ~13 seconds**  
+This is Bark's context window limit — a single pass maxes out at ~13–14s regardless of input length.  
+The CLI auto-chunks long text at sentence boundaries to work around this (watch for `splitting into N chunks` in the output).  
+Keep individual sentences under ~200 characters for best results.
+
+**Voice shifts slightly between sentences in long outputs**  
+This is a known Bark limitation with chunked generation — each chunk is an independent inference pass, so the voice character can drift slightly between chunks. Using `--seed` reduces but doesn't fully eliminate this. It's most noticeable on very long texts with many chunks.
+
+**`torch.load` / `weights_only` error after updating PyTorch**  
+Run `python patch_bark.py` to re-apply the PyTorch 2.6+ compatibility fix. `setup.ps1` does this automatically on fresh installs.
 
 ---
 
