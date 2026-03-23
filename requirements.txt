@@ -1,0 +1,74 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# BarkTTS requirements
+# Python 3.9+ | Windows / Linux / macOS
+#
+# INSTALL — use setup.ps1 (Windows) or setup.sh (Linux/macOS) for one-click setup.
+#
+# MANUAL INSTALL (GPU — recommended):
+#   Step 1:  pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124
+#   Step 2:  pip install -r requirements.txt
+#
+#   NOTE: torch MUST be installed first with --index-url (not --extra-index-url).
+#         Using only pip install -r requirements.txt will install the CPU-only
+#         PyPI wheel (torch 2.10+ exists on PyPI and outranks the CUDA build).
+#
+# MANUAL INSTALL (CPU only — very slow, not recommended for Bark):
+#   pip install torch torchaudio
+#   pip install -r requirements.txt
+#
+# CUDA version guide — change cu124 in the Step 1 command above:
+#   CUDA 12.4+  →  cu124   (default, works with most modern NVIDIA GPUs)
+#   CUDA 12.1   →  cu121
+#   CUDA 11.8   →  cu118
+#   Check: nvidia-smi (CUDA version shown in top-right)
+#   Full wheel list: https://download.pytorch.org/whl/torch/
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── PyTorch (GPU build) ───────────────────────────────────────────────────────
+# NOTE: setup.ps1 installs torch/torchaudio separately with --index-url to
+#       ensure the CUDA build is chosen over the CPU-only PyPI wheel.
+#       To install manually with GPU support:
+#         pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124
+#       Then run:  pip install -r requirements.txt
+torch>=2.1.0
+torchaudio>=2.1.0
+
+# ── Bark core dependencies ────────────────────────────────────────────────────
+# (from suno-ai/bark pyproject.toml)
+encodec>=0.1.1              # Meta's neural audio codec — required by Bark
+funcy>=1.17                 # Functional utilities — imported directly in generation.py
+huggingface-hub>=0.14.1     # Model weight downloading from HuggingFace
+numpy>=1.23.0
+scipy>=1.9.0                # wav file writing + softmax in generation
+tokenizers>=0.13.0          # Fast tokenizer backend
+transformers>=4.31.0        # BertTokenizer used in generation.py
+tqdm>=4.64.0                # Progress bars during generation
+
+# ── Audio playback (optional but recommended) ─────────────────────────────────
+sounddevice>=0.4.6          # pip install sounddevice  (also needs PortAudio)
+soundfile>=0.12.1           # Reading/writing audio files
+
+# ── Model download fallback (optional) ───────────────────────────────────
+# boto3 is listed in Bark's pyproject.toml for legacy S3 checkpoint downloads.
+# Modern Bark uses HuggingFace hub exclusively — boto3 is not needed in practice.
+# Uncomment if you hit an S3-related ImportError:
+# boto3>=1.26.0
+
+# ─────────────────────────────────────────────────────────────────────────────
+# NOTES
+#
+# sounddevice on Windows:
+#   If you get "PortAudio not found", install the binary wheel:
+#   pip install sounddevice  (wheels bundle PortAudio on Windows — should just work)
+#
+# encodec:
+#   Meta's codec — pure Python, no special install needed.
+#   If pip can't find it: pip install git+https://github.com/facebookresearch/encodec
+#
+# First run:
+#   Bark will automatically download ~5 GB of model weights to:
+#   Windows: C:\Users\<you>\.cache\suno\bark_v0\
+#   Linux:   ~/.cache/suno/bark_v0/
+#   Set env var SUNO_OFFLOAD_CPU=1 to run on CPU (very slow).
+#   Set env var SUNO_USE_SMALL_MODELS=1 to use smaller/faster models.
+# ─────────────────────────────────────────────────────────────────────────────

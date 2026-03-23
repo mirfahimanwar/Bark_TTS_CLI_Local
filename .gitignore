@@ -1,0 +1,35 @@
+# Virtual environment (created by setup.ps1 / setup.sh)
+venv/
+.venv/
+env/
+
+# Bark source repo (cloned automatically by setup — do not commit)
+bark/
+
+# Generated audio output
+output/
+*.wav
+*.mp3
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# Model weights cache (downloaded automatically — do not commit ~5 GB)
+.cache/
+*.npz
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
