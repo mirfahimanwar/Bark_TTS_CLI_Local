@@ -128,6 +128,33 @@ This only happens once.
 
 ---
 
+## Quick Examples
+
+```powershell
+# Basic
+python bark_tts.py "Hello world." --play
+
+# With a built-in voice preset
+python bark_tts.py "Hello, how are you?" --voice v2/en_speaker_9 --play
+
+# With a cloned .npz voice file
+python bark_tts.py "Hello, how are you?" --voice "D:\path\to\cloned_voice.npz" --play
+
+# Interactive — with voice pre-loaded at startup
+python bark_tts.py --interactive --play --voice v2/en_speaker_9
+
+# Interactive — set voice inside the session
+python bark_tts.py --interactive --play
+# >>> /voice v2/en_speaker_9
+# >>> Hello, how are you?
+```
+
+> **Flag syntax:** always use a space between the flag and value — `--voice v2/en_speaker_9` not `--voice=v2/en_speaker_9`
+> **Script name:** `bark_tts.py` — always call it with `python bark_tts.py`
+> **Voice cloning:** pass a `.npz` file from [bark-with-voice-clone](https://github.com/serp-ai/bark-with-voice-clone) as the `--voice` value
+
+---
+
 ## Usage
 
 ### Synthesize a single line
