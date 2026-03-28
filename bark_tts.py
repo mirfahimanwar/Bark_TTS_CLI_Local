@@ -93,6 +93,27 @@ def _split_sentences(text: str) -> list[str]:
     return chunks or [text]
 
 
+def _validate_voice(voice: str | None) -> None:
+    """Raise a clear error early if an unsupported voice format is given."""
+    if voice is None:
+        return
+    ext = os.path.splitext(voice)[1].lower()
+    audio_exts = {".wav", ".mp3", ".flac", ".ogg", ".m4a", ".aac"}
+    if ext in audio_exts:
+        sys.exit(
+            f"\n[ERROR] Bark cannot use a {ext!r} file as a voice reference directly.\n"
+            "\n"
+            "Bark requires a .npz file containing encoded speaker tokens, not a raw audio file.\n"
+            "To clone a voice from a WAV recording, use bark-with-voice-clone:\n"
+            "\n"
+            "  1. cd bark-with-voice-clone\n"
+            "  2. python clone_voice.py --audio_filepath \"path/to/your.wav\" --output_filepath \"voice.npz\"\n"
+            "  3. Then pass the resulting .npz here: --voice \"voice.npz\"\n"
+            "\n"
+            "See: https://github.com/serp-ai/bark-with-voice-clone\n"
+        )
+
+
 def _generate(
     text: str,
     voice: str | None,
@@ -110,6 +131,7 @@ def _generate(
     from bark.generation import generate_text_semantic, SAMPLE_RATE
     from bark.api import semantic_to_waveform
 
+    _validate_voice(voice)
     _load_models(small=small, cpu=cpu)
 
     if seed is not None:
