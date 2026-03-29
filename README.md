@@ -8,7 +8,8 @@ A better command-line interface for [Bark](https://github.com/suno-ai/bark) — 
 - Interactive prompt loop (`--interactive`) — type and hear, change voice/temp mid-session
 - `--play` flag to hear audio immediately
 - Temperature control (`--temp`) to reduce "um" filler
-- Reproducible output with `--seed`
+- Reproducible output with `--seed` — seed is always printed so you can recover a good result
+- `--rolling` flag for consistent voice across multi-sentence outputs (slower but more stable)
 - All 130+ built-in voice presets (`--list-voices`)
 - Supports cloned `.npz` voice files (from [bark-with-voice-clone](https://github.com/serp-ai/bark-with-voice-clone))
 - CPU fallback mode (`--cpu`) and small model mode (`--small`)
@@ -203,8 +204,9 @@ positional:
 
 options:
   --voice, -v PRESET    Voice preset or path to .npz cloned voice
-  --temp, -t T          Temperature: 0.3–0.5 = less filler, 0.8–1.0 = expressive (default: 0.7)
-  --seed N              Random seed for reproducible output
+  --temp, -t T          Temperature: 0.3–0.5 = tighter clone/less filler, 0.8–1.0 = more expressive (default: 0.7)
+  --seed N              Random seed. Always printed — note it to reproduce a good result.
+                        In interactive mode, resets to the same seed before every prompt.
   --out, -o FILE        Output .wav path (default: auto-named in ./output/)
   --output-dir DIR      Directory for auto-named files (default: ./output/)
   --play, -p            Play audio after generating
@@ -212,6 +214,10 @@ options:
   --list-voices         Print all built-in voice presets and exit
   --small               Use smaller models (~1 GB, faster, lower quality)
   --cpu                 Offload unused models to CPU to reduce VRAM usage
+  --rolling             Rolling context: each chunk is conditioned on the previous chunk's
+                        tokens for more consistent voice across long texts. Slower.
+  --clone WAV           Encode a WAV into a .npz speaker profile (one-time step)
+  --clone-out FILE      Output path for --clone (default: voices/<name>.npz)
 ```
 
 ---
@@ -299,7 +305,7 @@ The CLI auto-chunks long text at sentence boundaries to work around this (watch 
 Keep individual sentences under ~200 characters for best results.
 
 **Voice shifts slightly between sentences in long outputs**  
-This is a known Bark limitation with chunked generation — each chunk is an independent inference pass, so the voice character can drift slightly between chunks. Using `--seed` reduces but doesn't fully eliminate this. It's most noticeable on very long texts with many chunks.
+This is a known Bark limitation with chunked generation — each chunk is an independent inference pass. Use `--rolling` to condition each chunk on the previous one's tokens, which significantly reduces drift at the cost of ~2–3× slower generation per chunk.
 
 **`torch.load` / `weights_only` error after updating PyTorch**  
 Run `python patch_bark.py` to re-apply the PyTorch 2.6+ compatibility fix. `setup.ps1` does this automatically on fresh installs.
