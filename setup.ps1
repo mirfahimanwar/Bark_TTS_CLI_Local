@@ -40,6 +40,18 @@ if (Test-Path "bark") {
     }
 }
 
+# --- Clone bark-with-voice-clone for HuBERT voice cloning (--clone flag) ---
+if (Test-Path "bark-with-voice-clone") {
+    Write-Host "bark-with-voice-clone/ already exists - skipping clone." -ForegroundColor Yellow
+} else {
+    Write-Host "Cloning bark-with-voice-clone (HuBERT voice cloning support)..." -ForegroundColor Cyan
+    git clone https://github.com/serp-ai/bark-with-voice-clone bark-with-voice-clone
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "WARNING: Could not clone bark-with-voice-clone. --clone will not be available." -ForegroundColor Yellow
+        Write-Host "         Retry: git clone https://github.com/serp-ai/bark-with-voice-clone bark-with-voice-clone" -ForegroundColor Yellow
+    }
+}
+
 # --- Patch bark for PyTorch 2.6+ compatibility ---
 # PyTorch 2.6 changed torch.load default to weights_only=True, breaking Bark's model loading.
 $genFile = "bark\bark\generation.py"
@@ -85,6 +97,18 @@ Write-Host "Installing remaining dependencies..." -ForegroundColor Cyan
 
 pip install -r requirements.txt
 
+# --- Voice cloning needs no extra deps ---
+# transformers, torchaudio, encodec and huggingface_hub are already installed
+# above as Bark dependencies. HuBERT model weights (~360 MB) and the tokenizer
+# checkpoint (~24 MB) are downloaded automatically on first --clone run.
+Write-Host "Voice cloning support: ready (no extra packages needed)." -ForegroundColor Green
+
+# --- Create voices/ directory for speaker profiles ---
+if (-not (Test-Path "voices")) {
+    New-Item -ItemType Directory -Path "voices" | Out-Null
+    Write-Host "Created voices/ directory for speaker profiles." -ForegroundColor Cyan
+}
+
 # --- Done ---
 Write-Host ""
 Write-Host "=== Setup complete! ===" -ForegroundColor Green
@@ -94,5 +118,9 @@ Write-Host "  .\venv\Scripts\Activate.ps1" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Test it (downloads ~5 GB of models on first run):" -ForegroundColor White
 Write-Host "  python bark_tts.py 'Hello world' --play" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "Clone a voice (one-time encoding, then reuse with --voice):" -ForegroundColor White
+Write-Host "  python bark_tts.py --clone 'recording.wav' --clone-out voices/me.npz" -ForegroundColor Cyan
+Write-Host "  python bark_tts.py 'Hello!' --voice voices/me.npz --play" -ForegroundColor Cyan
 Write-Host ""
 

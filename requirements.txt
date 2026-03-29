@@ -48,6 +48,12 @@ tqdm>=4.64.0                # Progress bars during generation
 sounddevice>=0.4.6          # pip install sounddevice  (also needs PortAudio)
 soundfile>=0.12.1           # Reading/writing audio files
 
+# ── Voice cloning (--clone flag) ─────────────────────────────────────────────
+# No extra packages needed. Uses transformers.HubertModel (facebook/hubert-base-ls960)
+# which is already pulled in by the transformers dep above.
+# Model weights (~360 MB) + tokenizer (~24 MB) are downloaded on first --clone run
+# and cached by HuggingFace in ~/.cache/huggingface/ and voices/.hubert_cache/.
+
 # ── Model download fallback (optional) ───────────────────────────────────
 # boto3 is listed in Bark's pyproject.toml for legacy S3 checkpoint downloads.
 # Modern Bark uses HuggingFace hub exclusively — boto3 is not needed in practice.

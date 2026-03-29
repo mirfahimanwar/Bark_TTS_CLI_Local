@@ -137,11 +137,17 @@ python bark_tts.py "Hello world." --play
 # With a built-in voice preset
 python bark_tts.py "Hello, how are you?" --voice v2/en_speaker_9 --play
 
+# Clone a voice from a WAV (one-time step — saves a .npz speaker profile)
+python bark_tts.py --clone "recording.wav" --clone-out voices/me.npz
+
 # With a cloned .npz voice file
-python bark_tts.py "Hello, how are you?" --voice "D:\path\to\cloned_voice.npz" --play
+python bark_tts.py "Hello, how are you?" --voice voices/me.npz --play
 
 # Interactive — with voice pre-loaded at startup
 python bark_tts.py --interactive --play --voice v2/en_speaker_9
+
+# Interactive — with a cloned voice pre-loaded
+python bark_tts.py --interactive --play --voice voices/me.npz
 
 # Interactive — set voice inside the session
 python bark_tts.py --interactive --play
